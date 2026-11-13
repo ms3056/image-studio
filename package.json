@@ -1,0 +1,12 @@
+{
+  "name": "image-studio",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "description": "Controls for local image embeds in Obsidian.",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test tests/*.test.cjs"
+  },
+  "devDependencies": { "esbuild": "0.28.2" }
+}
