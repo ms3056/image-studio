@@ -64,4 +64,15 @@ body > .iek-layer[hidden],
 .iek-preview-bar { margin-top: 10px; justify-content: space-between; flex-wrap: wrap; }
 .iek-preview-controls { gap: 4px; } .iek-preview-controls button { cursor: pointer; }
 .iek-picker-title { font-weight: 550; }
+.caption {
+  display: block;
+  text-align: center;
+  font-size: 0.9em;
+  font-style: italic;
+  color: var(--text-muted);
+  margin-top: -0.25em;
+}
+.caption.caption-hidden {
+  display: none;
+}
 @media print { body > .iek-layer { display: none; } }

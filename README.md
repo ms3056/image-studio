@@ -36,50 +36,42 @@ To clear a custom width at any time, open **Image tools (`...`) → Reset size**
 
 ### How captions are stored in Markdown
 
-Image Studio stores captions directly in your Markdown note right after the image link, using standard Markdown italics plus an HTML comment marker so it stays portable and easy to parse:
+Image Studio stores captions directly in your Markdown note right after the image link using a clean `<span class="caption">` tag (so Obsidian renders it cleanly in both Live Preview and Reading View without any HTML comment clutter, and you can style `.caption` directly with CSS):
 
 - **Visible caption:**
   ```markdown
   ![[screenshot.png|500]]
 
-  *My image caption* <!--iek-caption-->
+  <span class="caption">My image caption</span>
   ```
   (On block-level images it places a blank line before the caption; inline images use a single space.)
 
 - **Hidden caption (kept in note, hidden from rendered view):**
-  If you check **"Keep caption text in note but hide from view"** in the Image properties modal, Image Studio stores it as an HTML comment so your text is preserved without showing in Reading View or Live Preview:
+  If you check **"Keep caption text in note but hide from view"** in the Image properties modal, Image Studio adds the `caption-hidden` class so the plugin's built-in CSS hides it (`display: none`) while keeping the text in your note:
   ```markdown
   ![[screenshot.png|500]]
 
-  <!--iek-caption-hidden:My image caption-->
+  <span class="caption caption-hidden">My image caption</span>
   ```
+
+*(Legacy `*caption* <!--iek-caption-->` and `<!--iek-caption-hidden:...-->` markers are also still recognized and automatically upgraded when edited.)*
 
 ### Rules & limits
 - Captions must be a **single line** (up to **1,000 characters**).
-- Special Markdown characters in captions are automatically escaped when written and unescaped when edited in the modal.
+- HTML characters (`&`, `<`, `>`) are automatically escaped when written and unescaped when edited in the modal.
 
-### Styling captions with CSS (optional)
+### Built-in & custom CSS styling
 
-Because visible captions are written as `*caption* <!--iek-caption-->` right after the image, you can style or center them in your `image-styling.css` snippet! For example, to center any caption paragraph that immediately follows an image embed:
+Image Studio's `styles.css` bakes in default `.caption` styling (centered, `0.9em`, italic, muted text) and `.caption.caption-hidden { display: none; }`. You can override or extend `.caption` in any CSS snippet:
 
 ```css
-/* Center & style Image Studio captions in Live Preview and Reading View */
-.markdown-preview-sizer p:has(> em) + *,
-.markdown-preview-sizer div:has(> .image-embed) + p > em,
-.is-live-preview .cm-line:has(+ .cm-line) {
-  /* Target paragraphs containing an emphasized caption */
-}
-
-/* Reading View: center caption right after an image */
-.markdown-preview-sizer .el-p:has(.image-embed) + .el-p > p {
-  text-align: center;
-  font-size: 0.9em;
-  color: var(--text-muted);
-  margin-top: -0.5em;
+/* Example: customize Image Studio captions in your own CSS snippet */
+.caption {
+  font-size: 0.85em;
+  color: var(--text-accent);
+  font-style: normal;
 }
 ```
-
-*(Note: In Reading View, Obsidian strips HTML comments from the DOM, so targeting `.el-p:has(.image-embed) + .el-p > p` with `em:only-child` is the cleanest way to style captions.)*
 
 ---
 

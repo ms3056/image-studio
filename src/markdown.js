@@ -5,8 +5,10 @@
 const captionMark = '<!--iek-caption-->';
 const hiddenMark = '<!--iek-caption-hidden:';
 const gap = '(?:[ \\t]+|[ \\t]*(?:\\r?\\n){1,2}[ \\t]*)';
-const visibleCaption = new RegExp('^(' + gap + ')\\*((?:\\\\[^\\r\\n]|[^*\\\\\\r\\n])+)\\* ' + captionMark);
-const hiddenCaption = new RegExp('^(' + gap + ')' + hiddenMark + '([^\\r\\n]*?)-->');
+const spanVisibleCaption = new RegExp('^(' + gap + ')<span class="caption">([^\\r\\n]*?)<\\/span>');
+const spanHiddenCaption = new RegExp('^(' + gap + ')<span class="caption caption-hidden">([^\\r\\n]*?)<\\/span>');
+const legacyVisibleCaption = new RegExp('^(' + gap + ')\\*((?:\\\\[^\\r\\n]|[^*\\\\\\r\\n])+)\\* ' + captionMark);
+const legacyHiddenCaption = new RegExp('^(' + gap + ')' + hiddenMark + '([^\\r\\n]*?)-->');
 const minWidth = 32, maxWidth = 8192, maxCaption = 1000;
 
 function parse(raw) {
@@ -46,15 +48,19 @@ function withWidth(raw, width) {
   return p.head + (p.wiki && label ? '|' : '') + label + p.tail;
 }
 
-function escapeText(s) { return s.replace(/[\\*_[\]<>!&$~|%\x60#^]/g, '\\$&'); }
+function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function unescapeHtml(s) { return s.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&'); }
 function unescapeText(s) { return s.replace(/\\([\\*_[\]<>!&$~|%\x60#^])/g, '$1'); }
-function hideText(s) { return s.replace(/&/g,'&amp;').replace(/-/g,'&#45;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function unhideText(s) { return s.replace(/&#45;/g,'-').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&'); }
 function captionAfter(text, end) {
   const rest = text.slice(end, end + maxCaption * 8 + 200);
-  const m = visibleCaption.exec(rest);
+  const sv = spanVisibleCaption.exec(rest);
+  if (sv) return {raw:sv[0], space:sv[1], value:unescapeHtml(sv[2]), hidden:false};
+  const sh = spanHiddenCaption.exec(rest);
+  if (sh) return {raw:sh[0], space:sh[1], value:unescapeHtml(sh[2]), hidden:true};
+  const m = legacyVisibleCaption.exec(rest);
   if (m) return {raw:m[0], space:m[1], value:unescapeText(m[2]), hidden:false};
-  const h = hiddenCaption.exec(rest);
+  const h = legacyHiddenCaption.exec(rest);
   if (h) return {raw:h[0], space:h[1], value:unhideText(h[2]), hidden:true};
   return {raw:'', space:'', value:'', hidden:false};
 }
@@ -87,7 +93,7 @@ function edit(s, changes) {
       const ownLine=/^[ \t]{0,3}$/.test(text.slice(lineStart,start)) && /^[ \t\r]*$/.test(text.slice(end+caption.raw.length,lineEnd));
       const eol=text.includes('\r\n') ? '\r\n':'\n';
       const space=caption.space || (ownLine ? eol+eol : ' ');
-      next=!value?'': space + (hidden ? hiddenMark+hideText(value)+'-->' : '*'+escapeText(value)+'* '+captionMark);
+      next=!value?'': space + '<span class="' + (hidden ? 'caption caption-hidden' : 'caption') + '">' + escapeHtml(value) + '</span>';
     }
   }
   return {from:start,to:end+caption.raw.length,insert:image+next};

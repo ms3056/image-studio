@@ -21,7 +21,7 @@ test('캡션만 편집하면 명시적 높이와 CRLF를 보존하며 삭제로 
   const raw='![[x.png|ALT|300x100]]',text='머리\r\n\r\n'+raw+'\r\n\r\n*기존 사용자 캡션*';
   const value='호수 & <b> **아침** ![[다른 이미지.png]] | 50% \\';
   const next=update(text,raw,0,{caption:value});
-  assert.ok(next.startsWith('머리\r\n\r\n'+raw+'\r\n\r\n*'));
+  assert.ok(next.startsWith('머리\r\n\r\n'+raw+'\r\n\r\n<span class="caption">'));
   assert.equal(m.snapshot(next,next.indexOf(raw),raw).caption.value,value);
   assert.equal(update(next,raw,0,{caption:''}),text);
 });
@@ -30,7 +30,7 @@ test('인라인 이미지의 캡션은 그 이미지에만 붙고 숨기기와 �
   const cap='둘째 --><img> &amp; &#45; \\\\*';
   const visible=update(text,raw,'last',{caption:cap});
   const hidden=update(visible,raw,'last',{hidden:true});
-  assert.ok(!hidden.includes('\n')); assert.equal(hidden.split('-->').length,2);
+  assert.ok(!hidden.includes('\n')); assert.ok(hidden.includes('<span class="caption caption-hidden">'));
   const snap=m.snapshot(hidden,hidden.lastIndexOf(raw),raw);
   assert.equal(snap.caption.hidden,true);assert.equal(snap.caption.value,cap);
   assert.equal(update(hidden,raw,'last',{hidden:false}),visible);

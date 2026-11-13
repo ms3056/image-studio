@@ -1,7 +1,7 @@
 {
   "id": "image-studio",
   "name": "Image Studio",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "minAppVersion": "1.12.4",
   "description": "Resize embedded images with side handles, zoom & pan in a lightbox preview, manage image files, and save captions in your notes.",
   "author": "HiroMike",
